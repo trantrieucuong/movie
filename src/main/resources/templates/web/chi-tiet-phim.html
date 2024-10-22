@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org"
+      th:replace="~{web/layout/layout :: layout(~{:: title}, ~{}, ~{:: #main-content}, ~{:: #js})}">
+<head>
+    <title th:text="${movie.title}">Chi tiết phim</title>
+</head>
+<body>
+
+<th:block id="main-content">
+    <section class="py-4">
+        <div class="container">
+            <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a class="text-primary" href="/">Trang chủ</a></li>
+                    <li class="breadcrumb-item">
+                        <a th:switch="${movie.type.value}">
+                            <a class="text-primary" th:case="'Phim lẻ'" href="/phim-le">Phim lẻ</a>
+                            <a class="text-primary" th:case="'Phim bộ'" href="/phim-bo">Phim bộ</a>
+                            <a class="text-primary" th:case="'Phim chiếu rạp'" href="/phim-chieu-rap">Phim chiếu rạp</a>
+                            <a class="text-primary" th:case="*" href="#">Không xác định</a> <!-- Trường hợp mặc định -->
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page" th:text="${movie.title}">Đầu Gấu Đụng Đầu Đất
+                    </li>
+                </ol>
+            </nav>
+            <div class="row mt-4">
+                <div class="col-3">
+                    <img id="movie-poster" class="rounded w-100"
+                         th:src="${movie.poster}" th:alt="${movie.title}">
+                </div>
+                <div class="col-9">
+                    <h4 class="mb-3" th:text="${movie.title}">Đầu Gấu Đụng Đầu Đất</h4>
+                    <div class="p-3 bg-body-tertiary">
+                        <div class="row">
+                            <div class="col-2">
+                                <p>Thể loại</p>
+                            </div>
+                            <div class="col-10">
+                                <p>
+                                    <th:block th:each="genre, state : ${movie.genres}"
+                                              th:text="${state.index < movie.genres.size() - 1 ? genre.name + ', ' : genre.name}"></th:block>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-2">
+                                <p>Năm sản xuất</p>
+                            </div>
+                            <div class="col-10">
+                                <p th:text="${movie.releaseYear}">2021</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-2">
+                                <p>Đạo diễn</p>
+                            </div>
+                            <div class="col-10">
+                                <p>
+                                    <th:block th:each="director, state : ${movie.directors}"
+                                              th:text="${state.index < movie.directors.size() - 1 ? director.name + ', ' : director.name}"></th:block>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-2">
+                                <p>Diễn viên</p>
+                            </div>
+                            <div class="col-10">
+                                <p>
+                                    <th:block th:each="actor, state : ${movie.actors}"
+                                              th:text="${state.index < movie.actors.size() - 1 ? actor.name + ', ' : actor.name}"></th:block>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-2">
+                                <p>Nội dung phim</p>
+                            </div>
+                            <div class="col-10">
+                                <p>
+                                    <th:block th:text="${movie.description}"></th:block>
+                                    <a class="text-primary" href="">Xem
+                                        thêm</a></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <th:block th:if="${movie.type.toString() == 'PHIM_BO' && episodes.size() > 0}">
+                        <a class="d-inline-block btn btn-danger px-5 py-2 mt-3 rounded"
+                           th:href="@{/xem-phim/{id}/{slug} (id=${movie.id}, slug=${movie.slug}, tap=${episodes.get(0).displayOrder})}">
+                            <span><i class="fa-solid fa-play"></i></span>
+                            Xem phim</a>
+                    </th:block>
+
+                    <th:block th:if="${(movie.type.toString() == 'PHIM_LE' || movie.type.toString() == 'PHIM_CHIEU_RAP') && episodes.size() > 0}">
+                        <a class="d-inline-block btn btn-danger px-5 py-2 mt-3 rounded"
+                           th:href="@{/xem-phim/{id}/{slug} (id=${movie.id}, slug=${movie.slug}, tap='full')}">
+                            <span><i class="fa-solid fa-play"></i></span>
+                            Xem phim</a>
+                    </th:block>
+                </div>
+            </div>
+
+            <div class="mt-4" th:if="${movie.type.toString() == 'PHIM_BO' && episodes.size() > 0}">
+                <h3 class="mb-3">Tập phim</h3>
+                <a class="btn btn-dark me-2"
+                   th:each="episode : ${episodes}"
+                   th:text="${episode.name}"
+                   th:href="@{/xem-phim/{id}/{slug} (id=${movie.id}, slug=${movie.slug}, tap=${episode.displayOrder})}">
+                    >Tập 1</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-4 bg-body-tertiary">
+        <div class="container">
+            <h3 class="mb-3">Phim đề xuất</h3>
+            <div class="row">
+                <div class="col-2" th:each="movie : ${relatedMovies}">
+                    <div class="movie-item">
+                        <a th:href="@{/phim/{id}/{slug} (id=${movie.id}, slug=${movie.slug})}"
+                           class="movie-media">
+                            <div class="movie-poster rounded overflow-hidden">
+                                <img class="w-100 h-100"
+                                     th:src="${movie.poster}" th:alt="${movie.title}">
+                            </div>
+                            <p class="mt-2" th:text="${movie.title}">Cô Đi Mà Lấy Chồng Tôi</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-4">
+        <div class="container">
+            <div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-3">Bình luận</h3>
+                    <button class="btn btn-primary" id="btn-open-modal-review" th:if="${session.currentUser != null}">
+                        Viết đánh giá
+                    </button>
+                </div>
+                <p th:if="${session.currentUser == null}">Vui lòng <a href="/dang-nhap"
+                                                                      class="text-primary text-decoration-underline">đăng
+                    nhập</a> để viết bình luận</p>
+                <div class="review-list">
+                    <div class="rating-item d-flex align-items-center mb-3 pb-3" th:each="review : ${reviews}">
+                        <div class="rating-avatar">
+                            <img th:src="${review.user.avatar}" th:alt="${review.user.name}">
+                        </div>
+                        <div class="rating-info ms-3">
+                            <div class="d-flex align-items-center">
+                                <p class="rating-name mb-0">
+                                    <strong th:text="${review.user.name}">Bùi Hiên</strong>
+                                </p>
+                                <p class="rating-time mb-0 ms-2"
+                                   th:text="${#dates.format(review.updatedAt, 'dd/MM/yyyy')}">
+                                    09/01/2024</p>
+                            </div>
+                            <div class="rating-star">
+                                <p class="mb-0 fw-bold">
+                                    <span class="rating-icon"><i class="fa fa-star"></i></span>
+                                    <span><th:block th:text="${review.rating}"></th:block>/10 <th:block
+                                            th:text="${review.ratingText}"></th:block></span>
+                                </p>
+                            </div>
+                            <p class="rating-content mt-1 mb-0 text-muted" th:text="${review.content}">Phim xem ổn. Điểm
+                                nhấn chính là sự hài hước và
+                                tiết tấu. Kết phim chưa thực sự hài lòng. 1 số nhân vật hoành tráng ở đầu và giữa phim,
+                                thì
+                                cuối phim mờ nhạt. Diễn biến phim hoặc chưa dành đủ thời gian, hoặc chưa nhấn mạnh đủ để
+                                dẫn
+                                đến các kết quả ở cuối phim.</p>
+
+                            <div class="rating-action mt-2"
+                                 th:if="${session.currentUser != null && session.currentUser.id == review.user.id}">
+                                <a href="javascript:void(0)" class="text-primary text-decoration-underline me-2"
+                                   th:onclick="|openModalUpdate(${review.id})|">Sửa</a>
+                                <a href="javascript:void(0)" class="text-danger text-decoration-underline"
+                                   th:onclick="|deleteReview(${review.id})|">Xóa</a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div th:if="${session.currentUser != null}" class="modal fade" id="modal-review" tabindex="-1"
+         aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal-title">Viết đánh giá</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <h5 class="text-center" th:text="${movie.title}"></h5>
+                        <div class="rating-container my-3 d-flex justify-content-center align-items-center">
+                            <span class="rating-item fs-5" data-rating="1"><i class="fa fa-star"></i></span>
+                            <span class="rating-item fs-5" data-rating="2"><i class="fa fa-star"></i></span>
+                            <span class="rating-item fs-5" data-rating="3"><i class="fa fa-star"></i></span>
+                            <span class="rating-item fs-5" data-rating="4"><i class="fa fa-star"></i></span>
+                            <span class="rating-item fs-5" data-rating="5"><i class="fa fa-star"></i></span>
+                            <span class="rating-item fs-5" data-rating="6"><i class="fa fa-star"></i></span>
+                            <span class="rating-item fs-5" data-rating="7"><i class="fa fa-star"></i></span>
+                            <span class="rating-item fs-5" data-rating="8"><i class="fa fa-star"></i></span>
+                            <span class="rating-item fs-5" data-rating="9"><i class="fa fa-star"></i></span>
+                            <span class="rating-item fs-5" data-rating="10"><i class="fa fa-star"></i></span>
+                        </div>
+                        <p id="rating-value" class="text-center fst-italic mt-2"></p>
+                    </div>
+                    <div class="mb-3">
+                        <textarea class="form-control" id="rating-content" rows="5"
+                                  placeholder="Viết đánh giá"></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-center align-items-center">
+                        <button type="button" class="btn btn-primary px-5" id="btn-handle-review">Hoàn tất</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<th:block id="js">
+    <script th:inline="javascript">
+        const movie = [[${movie}]];
+        let reviews = [[${reviews}]];
+        const currentUser = [[${session.currentUser}]];
+        console.log({movie, reviews, currentUser});
+    </script>
+    <script th:if="${session.currentUser != null}" src="/web/js/movie-detail-review.js"></script>
+</th:block>
+</body>
+</html>
